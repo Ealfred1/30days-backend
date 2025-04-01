@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "30daysbackend"
+version = "1.0.0"
+description = "Backend for the 30 days submission app"
+authors = ["Eric Alfred <alfrederic371@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^5.1.7"
+djangorestframework = "^3.16.0"
+django-cors-headers = "^4.7.0"
+psycopg2-binary = "^2.9.10"
+drf-spectacular = "^0.28.0"
+python-dotenv = "^1.1.0"
+pillow = "^11.2.0"
+dj-rest-auth = "^7.0.1"
+django-allauth = "^65.6.0"
+djangorestframework-simplejwt = "^5.5.0"
+django-filter = "^25.1"
+drf-yasg = "^1.21.10"
+whitenoise = "^6.9.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
