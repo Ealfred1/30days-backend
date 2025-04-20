@@ -10,6 +10,11 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 
 # Swagger documentation setup
 schema_view = get_schema_view(
@@ -41,12 +46,19 @@ urlpatterns = [
     # Authentication and user management
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('api/auth/google/', include('allauth.socialaccount.providers.google.urls')),
+    path('api/auth/github/', include('allauth.socialaccount.providers.github.urls')),
     
     # App URLs
     path('api/users/', include('users.urls')),
     path('api/submissions/', include('submissions.urls')),
     path('api/reviews/', include('reviews.urls')),
     path('api/versions/', include('versions.urls')),
+    
+    # API Schema
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 # Serve media files in development
