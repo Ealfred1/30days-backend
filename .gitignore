@@ -83,6 +83,7 @@ frontend/
 env/
 venv/
 ENV/
+.env.local
 env.bak/
 venv.bak/
 

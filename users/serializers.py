@@ -5,6 +5,24 @@ from core.models import Activity
 
 User = get_user_model()
 
+class UserDetailSerializer(serializers.ModelSerializer):
+    """
+    User model w/o password
+    """
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'name',
+            'avatar',
+            'firebase_uid',
+            'provider',
+            'date_joined',
+            'last_login'
+        ]
+        read_only_fields = ['email', 'firebase_uid', 'provider', 'date_joined', 'last_login']
+
 class CustomRegisterSerializer(RegisterSerializer):
     name = serializers.CharField(required=True)
     
@@ -16,9 +34,8 @@ class CustomRegisterSerializer(RegisterSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'name', 'avatar', 'bio', 'github_username', 
-                 'country', 'points', 'streak')
-        read_only_fields = ('points', 'streak')
+        fields = ('id', 'email', 'name', 'avatar', 'provider')
+        read_only_fields = ('email', 'provider')
 
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:

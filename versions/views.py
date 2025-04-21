@@ -11,3 +11,7 @@ class VersionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Version.objects.all()
     serializer_class = VersionSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.prefetch_related('submissions')

@@ -7,4 +7,16 @@ class VersionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Version
-        fields = '__all__' 
+        fields = [
+            'id',
+            'name',
+            'number',
+            'start_date',
+            'end_date',
+            'description',
+            'is_active',
+            'participant_count',
+            'submission_count',
+            'created_at',
+            'updated_at'
+        ] 

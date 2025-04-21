@@ -10,7 +10,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
+        if password:
+            user.set_password(password)
         user.save(using=self._db)
         return user
 
@@ -23,7 +24,9 @@ class User(AbstractUser):
     username = None
     email = models.EmailField(_('email address'), unique=True)
     name = models.CharField(max_length=255)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    avatar = models.URLField(max_length=500, blank=True)
+    firebase_uid = models.CharField(max_length=128, unique=True, null=True, blank=True)
+    provider = models.CharField(max_length=50, blank=True)  # 'google' or 'github'
     bio = models.TextField(blank=True)
     github_username = models.CharField(max_length=255, blank=True)
     country = models.CharField(max_length=100, blank=True)

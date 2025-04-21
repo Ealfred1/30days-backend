@@ -35,8 +35,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # API Documentation
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     
     # JWT Authentication
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -50,9 +50,9 @@ urlpatterns = [
     path('api/auth/github/', include('allauth.socialaccount.providers.github.urls')),
     
     # App URLs
-    path('api/users/', include('users.urls')),
+    path('api/', include('reviews.urls')),
+    path('api/', include('users.urls')),
     path('api/submissions/', include('submissions.urls')),
-    path('api/reviews/', include('reviews.urls')),
     path('api/versions/', include('versions.urls')),
     
     # API Schema
