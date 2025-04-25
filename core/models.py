@@ -18,8 +18,20 @@ class Activity(TimestampedModel):
     
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='activities')
     activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
-    submission = models.ForeignKey('submissions.Submission', on_delete=models.CASCADE, null=True, blank=True)
-    review = models.ForeignKey('reviews.Review', on_delete=models.CASCADE, null=True, blank=True)
+    submission = models.ForeignKey(
+        'submissions.Submission',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='core_activities'
+    )
+    review = models.ForeignKey(
+        'reviews.Review',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='core_activities'
+    )
     
     class Meta:
         ordering = ['-created_at']

@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'reviews.apps.ReviewsConfig',
     'versions.apps.VersionsConfig',
     'core.apps.CoreConfig',
+    'dashboard.apps.DashboardConfig',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
 ]
