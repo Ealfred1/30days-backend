@@ -30,7 +30,7 @@ def verify_firebase_token(id_token):
         initialize_firebase()
         return auth.verify_id_token(id_token)
     except Exception as e:
-        raise ValidationError(f"Invalid Firebase token: {str(e)}")
+        raise ValidationError(f"Invalid Firebase token: {str(e)}")  
 
 def get_firebase_user_info(uid):
     """Get user info from Firebase"""

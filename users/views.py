@@ -19,8 +19,18 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def me(self, request):
+        """Get current user's full profile"""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['patch'])
+    def update_me(self, request):
+        """Update current user's profile"""
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def leaderboard(self, request):
@@ -40,11 +50,10 @@ def verify_token(request):
         decoded_token = verify_firebase_token(id_token)
         firebase_uid = decoded_token['uid']
         
-        # Get or create user
         try:
             user = User.objects.get(firebase_uid=firebase_uid)
         except User.DoesNotExist:
-            # Get user info from Firebase
+            # Get user info from Firebase 
             firebase_user = get_firebase_user_info(firebase_uid)
             
             # Create new user
@@ -62,12 +71,7 @@ def verify_token(request):
         return Response({
             'token': str(refresh.access_token),
             'refresh': str(refresh),
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'name': user.name,
-                'avatar': user.avatar
-            }
+            'user': UserDetailSerializer(user).data
         })
 
     except ValidationError as e:
