@@ -4,18 +4,18 @@ from core.models import TimestampedModel
 # Create your models here.
 
 class Version(TimestampedModel):
-    name = models.CharField(max_length=100)  # e.g., "Kairos"
-    number = models.IntegerField()  # e.g., 7
+    name = models.CharField(max_length=255)
+    number = models.IntegerField()  # This is the required field causing the error
+    description = models.TextField(blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
-    description = models.TextField()
     is_active = models.BooleanField(default=False)
     
     class Meta:
-        ordering = ['-number']
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"v{self.number} - {self.name}"
+        return f"{self.name} (v{self.number})"
 
     @property
     def participant_count(self):

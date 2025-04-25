@@ -6,21 +6,22 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Submission, Technology
 from .serializers import SubmissionSerializer, TechnologySerializer
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 
 @extend_schema(tags=['submissions'])
 class SubmissionViewSet(viewsets.ModelViewSet):
-    queryset = Submission.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = SubmissionSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['version', 'user', 'day_number']
-    search_fields = ['title', 'description']
-    ordering_fields = ['created_at', 'day_number']
+    parser_classes = (MultiPartParser, FormParser)
+    queryset = Submission.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return Submission.objects.filter(user=self.request.user)
 
     @extend_schema(
         parameters=[

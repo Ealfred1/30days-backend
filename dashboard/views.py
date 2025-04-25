@@ -20,12 +20,25 @@ def dashboard_stats(request):
     # Get active version
     active_version = Version.objects.filter(is_active=True).first()
     if not active_version:
-        return Response({'error': 'No active version found'}, status=400)
+        return Response({
+            'days_remaining': 30,
+            'days_completed': 0,
+            'submission_count': 0,
+            'last_submission_date': None,
+            'rank': 0,
+            'rank_percentile': 0,
+            'total_participants': 0,
+            'progress_percentage': 0,
+            'timeline': [{'day': i + 1, 'completed': False} for i in range(30)],
+            'recent_activities': []
+        })
     
-    # Calculate days remaining and completed
+    # Calculate days
     today = timezone.now().date()
-    days_remaining = (active_version.end_date - today).days
-    days_completed = 30 - days_remaining
+    total_days = (active_version.end_date - active_version.start_date).days
+    days_elapsed = (today - active_version.start_date).days
+    days_remaining = max(0, total_days - days_elapsed)
+    days_completed = min(total_days, max(0, days_elapsed))
     
     # Get user submissions
     user_submissions = Submission.objects.filter(
@@ -33,26 +46,41 @@ def dashboard_stats(request):
         version=active_version
     )
     
-    # Calculate rank
-    users_by_points = User.objects.annotate(
-        total_points=Count('submissions', filter=Q(submissions__version=active_version))
-    ).order_by('-total_points')
+    # Get submission days
+    completed_days = set(user_submissions.values_list('day_number', flat=True))
     
-    user_rank = list(users_by_points).index(request.user) + 1
-    total_participants = users_by_points.count()
-    rank_percentile = (user_rank / total_participants) * 100
-    
-    # Get timeline
+    # Calculate timeline
     timeline = [
         {
-            'day': day,
-            'completed': user_submissions.filter(day_number=day).exists()
+            'day': day + 1,
+            'completed': (day + 1) in completed_days,
+            'current': (day + 1) == days_completed + 1
         }
-        for day in range(1, 31)
+        for day in range(30)
     ]
     
+    # Calculate rank and participants
+    users_with_submissions = Submission.objects.filter(
+        version=active_version
+    ).values('user').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    total_participants = users_with_submissions.count()
+    user_rank = 1
+    
+    for i, user_stats in enumerate(users_with_submissions):
+        if user_stats['user'] == request.user.id:
+            user_rank = i + 1
+            break
+    
+    # Calculate progress
+    progress_percentage = (days_completed / 30) * 100 if days_completed > 0 else 0
+    
     # Get recent activities
-    recent_activities = Activity.objects.select_related('user').order_by('-created_at')[:10]
+    recent_activities = Activity.objects.select_related(
+        'user'
+    ).order_by('-created_at')[:10]
     
     data = {
         'days_remaining': days_remaining,
@@ -60,15 +88,14 @@ def dashboard_stats(request):
         'submission_count': user_submissions.count(),
         'last_submission_date': user_submissions.first().created_at if user_submissions.exists() else None,
         'rank': user_rank,
-        'rank_percentile': rank_percentile,
+        'rank_percentile': (user_rank / total_participants * 100) if total_participants > 0 else 0,
         'total_participants': total_participants,
-        'progress_percentage': (days_completed / 30) * 100,
+        'progress_percentage': progress_percentage,
         'timeline': timeline,
         'recent_activities': recent_activities
     }
     
-    serializer = DashboardStatsSerializer(data)
-    return Response(serializer.data)
+    return Response(data)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])

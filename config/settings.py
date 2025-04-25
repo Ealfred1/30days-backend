@@ -3,6 +3,9 @@ from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Load environment variables
 load_dotenv()
@@ -268,3 +271,17 @@ FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'solar-botany-444719-b8')
 FIREBASE_PRIVATE_KEY_ID = os.getenv('FIREBASE_PRIVATE_KEY_ID')
 FIREBASE_PRIVATE_KEY = os.getenv('FIREBASE_PRIVATE_KEY')
 FIREBASE_CLIENT_EMAIL = os.getenv('FIREBASE_CLIENT_EMAIL')
+
+
+# Cloudinary configs
+CLOUDINARY_CONFIG = {
+    'cloud_name': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'api_key': os.getenv('CLOUDINARY_API_KEY'),
+    'api_secret': os.getenv('CLOUDINARY_API_SECRET')
+}
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_CONFIG['cloud_name'],
+    api_key=CLOUDINARY_CONFIG['api_key'],
+    api_secret=CLOUDINARY_CONFIG['api_secret']
+)
