@@ -44,40 +44,64 @@ def verify_token(request):
     try:
         id_token = request.data.get('idToken')
         if not id_token:
-            return Response({'error': 'No token provided'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'No token provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Verify the Firebase token
-        decoded_token = verify_firebase_token(id_token)
-        firebase_uid = decoded_token['uid']
+        # Add debug logging
+        print(f"Attempting to verify token for Firebase...")
         
+        # Verify the Firebase token and get decoded info
+        try:
+            decoded_token = verify_firebase_token(id_token)
+            firebase_uid = decoded_token['uid']
+            print(f"Successfully verified Firebase token for UID: {firebase_uid}")
+        except Exception as e:
+            print(f"Firebase verification failed: {str(e)}")
+            return Response(
+                {'error': f'Firebase verification failed: {str(e)}'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Try to get or create user
         try:
             user = User.objects.get(firebase_uid=firebase_uid)
+            print(f"Found existing user with Firebase UID: {firebase_uid}")
         except User.DoesNotExist:
-            # Get user info from Firebase 
+            print(f"Creating new user for Firebase UID: {firebase_uid}")
+            # Get user info from Firebase
             firebase_user = get_firebase_user_info(firebase_uid)
             
-            # Create new user
+            # Create new user with all required fields
             user = User.objects.create(
                 email=firebase_user.email,
-                name=firebase_user.display_name or '',
+                name=firebase_user.display_name or firebase_user.email.split('@')[0],
                 firebase_uid=firebase_uid,
                 avatar=firebase_user.photo_url or '',
-                provider=decoded_token.get('firebase', {}).get('sign_in_provider', '').replace('google.com', 'google').replace('github.com', 'github')
+                provider=decoded_token.get('firebase', {})
+                    .get('sign_in_provider', '')
+                    .replace('.com', '')
             )
 
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        
+        print(f"Generated new JWT tokens for user: {user.email}")
         
         return Response({
-            'token': str(refresh.access_token),
+            'token': access_token,
             'refresh': str(refresh),
             'user': UserDetailSerializer(user).data
         })
 
-    except ValidationError as e:
-        return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"Unexpected error in verify_token: {str(e)}")
+        return Response(
+            {'error': f'Authentication failed: {str(e)}'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['POST'])
 def logout(request):

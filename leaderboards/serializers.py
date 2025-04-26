@@ -21,8 +21,16 @@ class LeaderboardStatsSerializer(serializers.ModelSerializer):
     average_rating = serializers.DecimalField(max_digits=3, decimal_places=2, coerce_to_string=False)
 
     def get_user_name(self, obj):
-        # Return username or email if username is not set
-        return obj.user.username or obj.user.email.split('@')[0]
+        # Get the name from the user model
+        name = obj.user.name
+        
+        if not name:
+            # Fallback to email if no name is set
+            return obj.user.email.split('@')[0]
+            
+        # If name exists, return it directly since it should already be the full name
+        # from Firebase (e.g. "Eric Alfred")
+        return name
 
     class Meta:
         model = LeaderboardStats
@@ -31,4 +39,4 @@ class LeaderboardStatsSerializer(serializers.ModelSerializer):
             'longest_streak', 'submissions_count', 'average_rating',
             'reviews_given_count', 'reviews_received_count',
             'helpful_marks_received', 'rank', 'badges'
-        ] 
+        ]
