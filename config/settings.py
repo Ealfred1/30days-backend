@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'submissions.apps.SubmissionsConfig',
     'reviews.apps.ReviewsConfig',
+    'leaderboards.apps.LeaderboardsConfig',
     'versions.apps.VersionsConfig',
     'core.apps.CoreConfig',
     'dashboard.apps.DashboardConfig',

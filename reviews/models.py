@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from core.models import TimestampedModel
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 
@@ -29,3 +31,15 @@ class HelpfulMark(TimestampedModel):
     
     class Meta:
         unique_together = ['review', 'user']
+
+@receiver(post_save, sender=Review)
+def update_leaderboard_stats(sender, instance, created, **kwargs):
+    from leaderboards.models import LeaderboardStats
+    
+    # Update reviewer's stats
+    reviewer_stats, _ = LeaderboardStats.objects.get_or_create(user=instance.reviewer)
+    reviewer_stats.update_stats()
+    
+    # Update submission owner's stats
+    owner_stats, _ = LeaderboardStats.objects.get_or_create(user=instance.submission.user)
+    owner_stats.update_stats()

@@ -62,6 +62,9 @@ urlpatterns = [
     
     # Dashboard URLs
     path('api/dashboard/', include('dashboard.urls')),
+    
+    # Add the leaderboards URLs
+    path('api/leaderboards/', include('leaderboards.urls')),
 ]
 
 # Serve media files in development

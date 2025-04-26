@@ -39,9 +39,19 @@ class Submission(TimestampedModel):
             delete_image_from_cloudinary(self.cloudinary_public_id)
         super().delete(*args, **kwargs)
 
-class SubmissionImage(TimestampedModel):
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='images')
+    @property
+    def additional_images(self):
+        return self.images.all()
+
+class SubmissionImage(models.Model):
+    submission = models.ForeignKey(
+        Submission, 
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
     image_url = models.URLField()
+    cloudinary_public_id = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"Image for {self.submission.title}"
