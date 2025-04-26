@@ -47,7 +47,7 @@ class LeaderboardViewSet(viewsets.ReadOnlyModelViewSet):
         last_week_submissions = Submission.objects.filter(created_at__lte=week_ago).count()
         last_week_participants = LeaderboardStats.objects.filter(
             submissions_count__gt=0,
-            user__submission__created_at__lte=week_ago
+            user__submissions__created_at__lte=week_ago
         ).distinct().count()
         last_week_rating = LeaderboardStats.objects.filter(
             average_rating__gt=0

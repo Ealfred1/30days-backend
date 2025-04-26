@@ -12,7 +12,11 @@ class Technology(models.Model):
         return self.name
 
 class Submission(TimestampedModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submissions')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='submissions'
+    )
     version = models.ForeignKey('versions.Version', on_delete=models.CASCADE, related_name='submissions')
     title = models.CharField(max_length=255)
     description = models.TextField()

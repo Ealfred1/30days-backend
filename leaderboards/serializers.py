@@ -14,10 +14,15 @@ class UserBadgeSerializer(serializers.ModelSerializer):
         fields = ['id', 'earned_at', 'badge_details']
 
 class LeaderboardStatsSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.name', read_only=True)
-    user_avatar = serializers.CharField(source='user.avatar', read_only=True)
+    user_name = serializers.SerializerMethodField()
+    user_avatar = serializers.CharField(source='user.avatar', allow_null=True)
     badges = UserBadgeSerializer(source='user.badges', many=True, read_only=True)
     rank = serializers.IntegerField(read_only=True)
+    average_rating = serializers.DecimalField(max_digits=3, decimal_places=2, coerce_to_string=False)
+
+    def get_user_name(self, obj):
+        # Return username or email if username is not set
+        return obj.user.username or obj.user.email.split('@')[0]
 
     class Meta:
         model = LeaderboardStats
