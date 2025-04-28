@@ -85,6 +85,7 @@ venv/
 ENV/
 .env.local
 env.bak/
+solar-botany-*.json
 venv.bak/
 
 # Editor files
@@ -125,3 +126,4 @@ $RECYCLE.BIN/
 *.log
 *.out
 *.err
+solar-botany-444719-b8-firebase-adminsdk-fbsvc-51935500e6.json
