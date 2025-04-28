@@ -3,6 +3,7 @@ from firebase_admin import auth, credentials
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import os
+from pathlib import Path
 
 def initialize_firebase():
     """Initialize Firebase Admin SDK if not already initialized"""
@@ -10,30 +11,22 @@ def initialize_firebase():
         if not firebase_admin._apps:
             print("Initializing Firebase Admin SDK...")
             
-            if not all([
-                settings.FIREBASE_PROJECT_ID,
-                settings.FIREBASE_PRIVATE_KEY_ID,
-                settings.FIREBASE_PRIVATE_KEY,
-                settings.FIREBASE_CLIENT_EMAIL
-            ]):
-                raise ValidationError("Missing Firebase configuration")
+            # Get the path to the service account file
+            # Assuming it's in the root directory of your project
+            base_dir = Path(__file__).resolve().parent.parent
+            service_account_path = base_dir / "solar-botany-444719-b8-firebase-adminsdk-fbsvc-51935500e6.json"
             
-            cred = credentials.Certificate({
-                "type": "service_account",
-                "project_id": settings.FIREBASE_PROJECT_ID,
-                "private_key_id": settings.FIREBASE_PRIVATE_KEY_ID,
-                "private_key": settings.FIREBASE_PRIVATE_KEY,
-                "client_email": settings.FIREBASE_CLIENT_EMAIL,
-                "client_id": "",
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{settings.FIREBASE_CLIENT_EMAIL}"
-            })
+            print(f"Loading service account from: {service_account_path}")
+            
+            # Initialize with the service account file
+            cred = credentials.Certificate(str(service_account_path))
             firebase_admin.initialize_app(cred)
+            
             print("Firebase Admin SDK initialized successfully")
+            
     except Exception as e:
         print(f"Firebase initialization error: {str(e)}")
+        print(f"Error type: {type(e)}")
         raise ValidationError(f"Failed to initialize Firebase: {str(e)}")
 
 def verify_firebase_token(id_token):

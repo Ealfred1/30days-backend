@@ -171,7 +171,7 @@ REST_FRAMEWORK = {
 
 # SimpleJWT settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=90),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -270,7 +270,12 @@ SOCIALACCOUNT_PROVIDERS = {
 # Firebase Settings
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID')
 FIREBASE_PRIVATE_KEY_ID = os.getenv('FIREBASE_PRIVATE_KEY_ID')
-FIREBASE_PRIVATE_KEY = os.getenv('FIREBASE_PRIVATE_KEY', '').encode().decode('unicode_escape') if os.getenv('FIREBASE_PRIVATE_KEY') else None
+FIREBASE_PRIVATE_KEY = os.getenv('FIREBASE_PRIVATE_KEY')
+if FIREBASE_PRIVATE_KEY:
+    # Handle the private key string properly
+    FIREBASE_PRIVATE_KEY = FIREBASE_PRIVATE_KEY.replace('\\n', '\n')
+    if FIREBASE_PRIVATE_KEY.startswith('"') and FIREBASE_PRIVATE_KEY.endswith('"'):
+        FIREBASE_PRIVATE_KEY = FIREBASE_PRIVATE_KEY[1:-1]  # Remove surrounding quotes
 FIREBASE_CLIENT_EMAIL = os.getenv('FIREBASE_CLIENT_EMAIL')
 
 
