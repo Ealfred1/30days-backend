@@ -3,7 +3,9 @@ from firebase_admin import auth, credentials
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import os
-from pathlib import Path
+import base64
+import json
+import tempfile
 
 def initialize_firebase():
     """Initialize Firebase Admin SDK if not already initialized"""
@@ -11,18 +13,34 @@ def initialize_firebase():
         if not firebase_admin._apps:
             print("Initializing Firebase Admin SDK...")
             
-            # Get the path to the service account file
-            # Assuming it's in the root directory of your project
-            base_dir = Path(__file__).resolve().parent.parent
-            service_account_path = base_dir / "solar-botany-444719-b8-firebase-adminsdk-fbsvc-51935500e6.json"
+            # Get the Firebase Admin credentials from environment variable
+            firebase_base64 = os.getenv("FIREBASE_ADMIN_BASE64")
             
-            print(f"Loading service account from: {service_account_path}")
+            if not firebase_base64:
+                raise ValidationError("Firebase Admin credentials not found in environment")
             
-            # Initialize with the service account file
-            cred = credentials.Certificate(str(service_account_path))
-            firebase_admin.initialize_app(cred)
-            
-            print("Firebase Admin SDK initialized successfully")
+            # Decode the base64 string to get the JSON content
+            try:
+                credentials_json = base64.b64decode(firebase_base64).decode('utf-8')
+                credentials_dict = json.loads(credentials_json)
+                
+                # Create a temporary file to store the credentials
+                with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
+                    json.dump(credentials_dict, temp_file)
+                    temp_path = temp_file.name
+                
+                # Initialize Firebase with the temporary credentials file
+                cred = credentials.Certificate(temp_path)
+                firebase_admin.initialize_app(cred)
+                
+                # Clean up the temporary file
+                os.unlink(temp_path)
+                
+                print("Firebase Admin SDK initialized successfully")
+                
+            except Exception as e:
+                print(f"Error decoding Firebase credentials: {str(e)}")
+                raise ValidationError(f"Invalid Firebase credentials format: {str(e)}")
             
     except Exception as e:
         print(f"Firebase initialization error: {str(e)}")
