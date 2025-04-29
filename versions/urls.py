@@ -1,10 +1,8 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import VersionViewSet
+from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'', VersionViewSet, basename='version')
+router.register(r'versions', VersionViewSet, basename='version')
 
-urlpatterns = [
-    path('', include(router.urls)),
-] 
+urlpatterns = router.urls 

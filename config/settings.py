@@ -180,8 +180,9 @@ SIMPLE_JWT = {
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    # Add your frontend URLs here
+    "http://localhost:3000",  # Your frontend URL
+    "https://kairos-v4.vercel.app"
+    
 ]
 CORS_ALLOW_CREDENTIALS = True
 
