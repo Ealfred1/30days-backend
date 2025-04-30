@@ -8,22 +8,28 @@ from django.dispatch import receiver
 # Create your models here.
 
 class Review(TimestampedModel):
-    submission = models.ForeignKey('submissions.Submission', on_delete=models.CASCADE, related_name='reviews')
-    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews_given')
-    rating = models.DecimalField(
-        max_digits=3,
-        decimal_places=1,
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    project = models.CharField(max_length=255)
+    rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     comment = models.TextField()
-    helpful_count = models.IntegerField(default=0)
+    helpful = models.IntegerField(default=0)
     
     class Meta:
         ordering = ['-created_at']
-        unique_together = ['submission', 'reviewer']
+        default_manager_name = 'objects'
 
     def __str__(self):
-        return f"Review by {self.reviewer.name} on {self.submission.title}"
+        return f"Review by {self.user.name} for {self.project}"
+
+    @property
+    def reviewer_name(self):
+        return self.user.name if self.user else ''
 
 class HelpfulMark(TimestampedModel):
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='helpful_marks')
@@ -36,10 +42,6 @@ class HelpfulMark(TimestampedModel):
 def update_leaderboard_stats(sender, instance, created, **kwargs):
     from leaderboards.models import LeaderboardStats
     
-    # Update reviewer's stats
-    reviewer_stats, _ = LeaderboardStats.objects.get_or_create(user=instance.reviewer)
+    # Update only reviewer's stats
+    reviewer_stats, _ = LeaderboardStats.objects.get_or_create(user=instance.user)
     reviewer_stats.update_stats()
-    
-    # Update submission owner's stats
-    owner_stats, _ = LeaderboardStats.objects.get_or_create(user=instance.submission.user)
-    owner_stats.update_stats()

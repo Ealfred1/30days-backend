@@ -42,33 +42,22 @@ class LeaderboardStats(TimestampedModel):
         return LeaderboardStats.objects.filter(points__gt=self.points).count() + 1
 
     def update_stats(self):
-        from submissions.models import Submission
+        """Update user's leaderboard statistics"""
         from reviews.models import Review
 
-        # Update submission stats
-        submissions = Submission.objects.filter(user=self.user)
-        self.submissions_count = submissions.count()
-
         # Update review stats
-        reviews_received = Review.objects.filter(submission__user=self.user)
-        self.reviews_received_count = reviews_received.count()
-        self.average_rating = reviews_received.aggregate(Avg('rating'))['rating__avg'] or 0
-
-        # Update reviews given
-        self.reviews_given_count = Review.objects.filter(reviewer=self.user).count()
-
+        reviews_given = Review.objects.filter(user=self.user)
+        self.reviews_given_count = reviews_given.count()
+        
         # Update helpful marks
-        self.helpful_marks_received = Review.objects.filter(
-            submission__user=self.user
-        ).aggregate(
-            total_helpful=Sum('helpful_count')
+        self.helpful_marks_received = reviews_given.aggregate(
+            total_helpful=Sum('helpful')
         )['total_helpful'] or 0
 
-        # Calculate points
+        # Calculate points based on reviews and helpful marks
         self.points = (
-            self.submissions_count * 30 +  # Points for submissions
             self.reviews_given_count * 10 +  # Points for giving reviews
-            self.helpful_marks_received * 5  # Points for receiving helpful marks
+            self.helpful_marks_received * 5   # Points for receiving helpful marks
         )
 
         self.save()

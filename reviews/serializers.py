@@ -4,29 +4,37 @@ from users.serializers import UserDetailSerializer
 
 class ReviewSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
-    user_id = serializers.IntegerField(write_only=True, required=False)
-    reviewer_name = serializers.CharField(source='user.name', read_only=True)
     
     class Meta:
         model = Review
         fields = [
-            'id', 
-            'user', 
-            'user_id',
-            'reviewer_name',
-            'project', 
-            'rating', 
-            'comment', 
-            'created_at',
-            'helpful'
+            'id',
+            'user',
+            'project',
+            'rating',
+            'comment',
+            'helpful',
+            'created_at'
         ]
-        read_only_fields = ['created_at', 'helpful']
+        read_only_fields = ['id', 'user', 'helpful', 'created_at']
 
-    def create(self, validated_data):
-        user_id = validated_data.pop('user_id', None)
-        if user_id:
-            validated_data['user_id'] = user_id
-        return super().create(validated_data)
+    def validate_rating(self, value):
+        """Validate rating is between 1 and 5"""
+        if not 1 <= value <= 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5")
+        return value
+
+    def validate_project(self, value):
+        """Validate project name"""
+        if not value.strip():
+            raise serializers.ValidationError("Project name cannot be empty")
+        return value
+
+    def validate_comment(self, value):
+        """Validate comment"""
+        if not value.strip():
+            raise serializers.ValidationError("Comment cannot be empty")
+        return value
 
 class HelpfulMarkSerializer(serializers.ModelSerializer):
     class Meta:
