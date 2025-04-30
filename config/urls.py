@@ -15,6 +15,8 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
+from rest_framework.routers import DefaultRouter
+from users.views import AdminViewSet
 
 # Swagger documentation setup
 schema_view = get_schema_view(
@@ -29,6 +31,9 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
+
+router = DefaultRouter()
+router.register(r'admin', AdminViewSet, basename='admin')
 
 urlpatterns = [
     # Admin
@@ -65,6 +70,9 @@ urlpatterns = [
     
     # Add the leaderboards URLs
     path('api/leaderboards/', include('leaderboards.urls')),
+    
+    # Admin API endpoints
+    path('api/', include(router.urls)),
 ]
 
 # Serve media files in development

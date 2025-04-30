@@ -4,6 +4,9 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import get_user_model
+
+from reviews.models import Review
+from submissions.models import Submission
 from .serializers import UserDetailSerializer, UserSerializer, PointsAdjustmentSerializer
 from .models import User, PointsAdjustment
 from .services import verify_firebase_token, get_firebase_user_info
