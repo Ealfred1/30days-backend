@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 
 from reviews.models import Review
 from submissions.models import Submission
+from versions.models import Version
+from versions.serializers import VersionSerializer
 from .serializers import UserDetailSerializer, UserSerializer, PointsAdjustmentSerializer
 from .models import User, PointsAdjustment
 from .services import verify_firebase_token, get_firebase_user_info
@@ -179,3 +181,36 @@ class AdminViewSet(viewsets.ModelViewSet):
         adjustments = PointsAdjustment.objects.select_related('user', 'adjusted_by')
         serializer = PointsAdjustmentSerializer(adjustments, many=True)
         return Response(serializer.data)
+    @action(detail=False, methods=['get'])
+    def versions(self, request):
+        """Get all versions"""
+        versions = Version.objects.all().order_by('-created_at')
+        serializer = VersionSerializer(versions, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def create_version(self, request):
+        """Create a new version"""
+        serializer = VersionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(created_by=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['patch'])
+    def update_version(self, request, pk=None):
+        """Update a version"""
+        version = get_object_or_404(Version, pk=pk)
+        serializer = VersionSerializer(version, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['delete'])
+    def delete_version(self, request, pk=None):
+        """Delete a version"""
+        version = get_object_or_404(Version, pk=pk)
+        version.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
