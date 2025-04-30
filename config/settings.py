@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'django_filters',
+    'django_extensions',
     'drf_yasg',
     
     # Local apps
@@ -223,7 +224,9 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header'
         }
-    }
+    },
+    'USE_SESSION_AUTH': False,
+    'VALIDATOR_URL': None,
 }
 
 # DRF Spectacular Settings

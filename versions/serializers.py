@@ -7,6 +7,10 @@ class VersionSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     days_remaining = serializers.IntegerField(read_only=True)
     progress_percentage = serializers.IntegerField(read_only=True)
+    technologies = serializers.ListField(
+        child=serializers.CharField(),
+        default=list
+    )
     
     class Meta:
         model = Version

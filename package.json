@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "@types/firebase": "^2.4.32"
+  },
+  "dependencies": {
+    "@radix-ui/react-progress": "^1.1.4"
   }
 }
