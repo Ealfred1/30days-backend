@@ -42,6 +42,34 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+        permissions = [
+            ("can_manage_points", "Can manage user points"),
+            ("can_view_stats", "Can view platform statistics"),
+            ("can_manage_versions", "Can manage challenge versions"),
+        ]
 
     def __str__(self):
         return self.email
+
+    def adjust_points(self, points_delta: int, reason: str = None):
+        """Adjust user points with audit trail"""
+        self.points += points_delta
+        self.save()
+        
+        # Create points adjustment record
+        PointsAdjustment.objects.create(
+            user=self,
+            points_delta=points_delta,
+            reason=reason,
+            adjusted_by=self.request.user if hasattr(self, 'request') else None
+        )
+
+class PointsAdjustment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='points_adjustments')
+    points_delta = models.IntegerField()
+    reason = models.TextField(null=True, blank=True)
+    adjusted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='points_adjusted')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.name}: {self.points_delta} points ({self.reason})"

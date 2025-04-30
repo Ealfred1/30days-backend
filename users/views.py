@@ -1,14 +1,15 @@
 from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import get_user_model
-from .serializers import UserDetailSerializer
-from .models import User
+from .serializers import UserDetailSerializer, UserSerializer, PointsAdjustmentSerializer
+from .models import User, PointsAdjustment
 from .services import verify_firebase_token, get_firebase_user_info
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.exceptions import ValidationError
+from django.db import models
 
 User = get_user_model()
 
@@ -115,7 +116,8 @@ def verify_token(request):
         return Response({
             'token': access_token,
             'refresh': str(refresh),
-            'user': UserDetailSerializer(user).data
+            'user': UserDetailSerializer(user).data,
+            'is_admin': user.is_staff or user.is_superuser  # Add this line
         })
 
     except Exception as e:
@@ -135,3 +137,42 @@ def logout(request):
         return Response({'message': 'Successfully logged out'})
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    
+    @action(detail=False, methods=['get'])
+    def platform_stats(self, request):
+        """Get platform-wide statistics"""
+        stats = {
+            'total_users': User.objects.count(),
+            'active_users': User.objects.filter(is_active=True).count(),
+            'total_points': User.objects.aggregate(total=models.Sum('points'))['total'],
+            'average_points': User.objects.aggregate(avg=models.Avg('points'))['avg'],
+            'submissions_count': Submission.objects.count(),
+            'reviews_count': Review.objects.count(),
+        }
+        return Response(stats)
+
+    @action(detail=True, methods=['post'])
+    def adjust_points(self, request, pk=None):
+        """Adjust user points"""
+        user = self.get_object()
+        points_delta = request.data.get('points_delta')
+        reason = request.data.get('reason')
+        
+        if not points_delta:
+            return Response(
+                {'error': 'points_delta is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        user.adjust_points(points_delta, reason)
+        return Response({'status': 'success', 'new_points': user.points})
+
+    @action(detail=False, methods=['get'])
+    def points_history(self, request):
+        """Get points adjustment history"""
+        adjustments = PointsAdjustment.objects.select_related('user', 'adjusted_by')
+        serializer = PointsAdjustmentSerializer(adjustments, many=True)
+        return Response(serializer.data)

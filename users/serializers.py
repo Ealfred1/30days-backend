@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from core.models import Activity
+from .models import User, PointsAdjustment
 
 User = get_user_model()
 
@@ -11,16 +12,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = [
-            'id',
-            'email',
-            'name',
-            'avatar',
-            'firebase_uid',
-            'provider',
-            'date_joined',
-            'last_login'
-        ]
+        fields = (
+            'id', 'email', 'name', 'avatar', 'firebase_uid', 
+            'provider', 'date_joined', 'last_login',
+            'is_staff', 'is_superuser'
+        )
         read_only_fields = ['email', 'firebase_uid', 'provider', 'date_joined', 'last_login']
 
 class CustomRegisterSerializer(RegisterSerializer):
@@ -40,4 +36,12 @@ class UserSerializer(serializers.ModelSerializer):
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
+        fields = '__all__'
+
+class PointsAdjustmentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    adjusted_by = serializers.StringRelatedField()
+    
+    class Meta:
+        model = PointsAdjustment
         fields = '__all__' 
